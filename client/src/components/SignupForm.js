@@ -1,9 +1,16 @@
+/* ----------------------------- */
+/* Project  : Book Search Engine */
+/* File     : SignupForm.js      */
+/* Modify   : Vicente Garcia     */
+/* Modified : 07/03/2022         */
+/* ----------------------------- */
 import React, { useState } from 'react';
 import { Form, Button, Alert } from 'react-bootstrap';
-
-import { createUser } from '../utils/API';
+// Import mutation hook
+import { useMutation } from '@apollo/client';
+// Import mutation to add user
+import { ADD_USER } from '../utils/mutations';
 import Auth from '../utils/auth';
-
 const SignupForm = () => {
   // set initial form state
   const [userFormData, setUserFormData] = useState({ username: '', email: '', password: '' });
@@ -11,44 +18,36 @@ const SignupForm = () => {
   const [validated] = useState(false);
   // set state for alert
   const [showAlert, setShowAlert] = useState(false);
-
+  // Define addUser function as mutation
+  const [addUser, { error }] = useMutation(ADD_USER);
   const handleInputChange = (event) => {
     const { name, value } = event.target;
     setUserFormData({ ...userFormData, [name]: value });
   };
-
   const handleFormSubmit = async (event) => {
     event.preventDefault();
-
     // check if form has everything (as per react-bootstrap docs)
     const form = event.currentTarget;
     if (form.checkValidity() === false) {
       event.preventDefault();
       event.stopPropagation();
     }
-
     try {
-      const response = await createUser(userFormData);
-
-      if (!response.ok) {
-        throw new Error('something went wrong!');
-      }
-
-      const { token, user } = await response.json();
-      console.log(user);
-      Auth.login(token);
-    } catch (err) {
-      console.error(err);
+      // execute addUser mutation and pass in variable data from form
+      const { data } = await addUser({
+        variables: { ...userFormData }
+      });
+      Auth.login(data.addUser.token);
+    } catch (e) {
+      console.error(e);
       setShowAlert(true);
     }
-
     setUserFormData({
       username: '',
       email: '',
       password: '',
     });
   };
-
   return (
     <>
       {/* This is needed for the validation functionality above */}
@@ -57,7 +56,6 @@ const SignupForm = () => {
         <Alert dismissible onClose={() => setShowAlert(false)} show={showAlert} variant='danger'>
           Something went wrong with your signup!
         </Alert>
-
         <Form.Group>
           <Form.Label htmlFor='username'>Username</Form.Label>
           <Form.Control
@@ -70,7 +68,6 @@ const SignupForm = () => {
           />
           <Form.Control.Feedback type='invalid'>Username is required!</Form.Control.Feedback>
         </Form.Group>
-
         <Form.Group>
           <Form.Label htmlFor='email'>Email</Form.Label>
           <Form.Control
@@ -83,7 +80,6 @@ const SignupForm = () => {
           />
           <Form.Control.Feedback type='invalid'>Email is required!</Form.Control.Feedback>
         </Form.Group>
-
         <Form.Group>
           <Form.Label htmlFor='password'>Password</Form.Label>
           <Form.Control
@@ -102,9 +98,9 @@ const SignupForm = () => {
           variant='success'>
           Submit
         </Button>
+        {error && <div>Signup failed</div>}
       </Form>
     </>
   );
 };
-
 export default SignupForm;
