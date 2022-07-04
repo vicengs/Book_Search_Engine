@@ -18,7 +18,7 @@ const resolvers = {
     // Return user data
     me: async (parent, args, context) => {
       if (context.user) {
-        const userData = await User.findOne({ _id: context.user._id }).select('-__v -password')//.populate('savedBooks')
+        const userData = await User.findOne({ _id: context.user._id }).select('-__v -password');
         return userData;
       }
       throw new AuthenticationError('Not logged in');
@@ -32,7 +32,7 @@ const resolvers = {
   // Set inserts and deletes
   Mutation: {
     // Authorization to access
-    loginUser: async (parent, { email, password }) => {
+    login: async (parent, { email, password }) => {
       const userLog = await User.findOne({ email });
       if (!userLog) {
         throw new AuthenticationError("Can't find this email");
@@ -64,7 +64,7 @@ const resolvers = {
         const addBook = await User.findOneAndUpdate(
           { _id: context.user._id },
           { $push: { savedBooks: book } },
-          { new: true }
+          { new: true, runValidators: true }
         );
         return addBook;
       }  
@@ -75,7 +75,7 @@ const resolvers = {
       if (context.user) {
         const removeBook = await User.findOneAndUpdate(
           { _id: context.user._id },
-          { $pull: { savedBooks: {bookId} } },
+          { $pull: { savedBooks: { bookId } } },
           { new: true }
         );
         return removeBook;
