@@ -61,7 +61,7 @@ Made by Vicente Garcia Sepulveda
 
 #### Deployed
 
-- PENDIENTE
+- https://pristine-yosemite-08731.herokuapp.com/
   
 #### E-mail
   
